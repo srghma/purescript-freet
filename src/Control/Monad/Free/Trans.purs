@@ -17,7 +17,7 @@ import Prelude
 import Control.Apply (lift2)
 import Control.Monad.Error.Class (class MonadThrow, throwError)
 import Control.Monad.Reader.Class (class MonadAsk, ask)
-import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRecM)
+import Control.Monad.Rec.Class (class MonadRec, Step(..), tailRec, tailRecM)
 import Control.Monad.State.Class (class MonadState, state)
 import Control.Monad.Trans.Class (class MonadTrans, lift)
 import Control.Monad.Writer.Class (class MonadTell, tell)
@@ -58,8 +58,8 @@ resume = tailRecM go
             Left a -> pure (Loop (f a))
             Right fc -> pure (Done (Right (map (\h -> h >>= f) fc)))
         Bind e1 ->
-          e1 # runExists \(Bound m1 f1) ->
-            pure (Loop (bind (m1 unit) (\z -> f1 z >>= f)))
+          e1 # runExists \(Bound m f1) ->
+            pure (Loop (bind (m unit) (\z -> f1 z >>= f)))
 
 instance functorFreeT :: (Functor f, Functor m) => Functor (FreeT f m) where
   map f (FreeT m) = FreeT \_ -> map (bimap f (map (map f))) (m unit)
@@ -81,6 +81,7 @@ instance monadTransFreeT :: (Functor f) => MonadTrans (FreeT f) where
   lift ma = FreeT \_ -> map Left ma
 
 instance monadRecFreeT :: (Functor f, Monad m) => MonadRec (FreeT f m) where
+  -- tailRecM :: (x -> m (Step x a)) -> x -> m a
   tailRecM f = go
     where
     go s =
@@ -114,7 +115,7 @@ instance monadThrowFreeT :: (Functor f, MonadThrow e m) => MonadThrow e (FreeT f
 
 -- | Lift an action from the functor `f` to a `FreeT` action.
 liftFreeT :: forall f m a. Functor f => Monad m => f a -> FreeT f m a
-liftFreeT fa = FreeT \_ -> pure (Right (map pure fa))
+liftFreeT fa = FreeT \_ -> (pure :: Either a (f (FreeT f m a)) -> m (Either a (f (FreeT f m a)))) (Right (map (pure :: a -> FreeT f m a) fa))
 
 -- | Change the underlying `Monad` for a `FreeT` action.
 hoistFreeT :: forall f m n a. Functor f => Functor n => (m ~> n) -> FreeT f m a -> FreeT f n a
@@ -139,7 +140,7 @@ substFreeT fBind (FreeT m) = join $ FreeT \_ -> m unit <#> case _ of
 
 -- | Run a `FreeT` computation to completion.
 runFreeT :: forall f m a. Functor f => MonadRec m => (f (FreeT f m a) -> m (FreeT f m a)) -> FreeT f m a -> m a
-runFreeT interp = tailRecM (go <=< resume)
+runFreeT interp = (tailRecM :: (FreeT f m a -> m (Step (FreeT f m a) a)) -> FreeT f m a -> m a) (go <=< resume)
   where
   go :: Either a (f (FreeT f m a)) -> m (Step (FreeT f m a) a)
   go (Left a) = pure (Done a)
