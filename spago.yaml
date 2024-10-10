@@ -1,0 +1,31 @@
+package:
+  name: freet
+  publish:
+    license: MIT
+    version: 7.0.0
+    location:
+      githubOwner: purescript-contrib
+      githubRepo: purescript-freet
+  dependencies:
+    - aff
+    - bifunctors
+    - control
+    - effect
+    - either
+    - exists
+    - foldable-traversable
+    - free
+    - prelude
+    - tailrec
+    - transformers
+    - tuples
+  test:
+    main: Test.Main
+    dependencies:
+      - console
+      - lists
+      - maybe
+workspace:
+  extraPackages: {}
+  packageSet:
+    registry: 60.5.0
