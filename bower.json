@@ -1,14 +1,5 @@
 {
   "name": "purescript-freet",
-  "ignore": [
-    "**/.*",
-    "bower_components",
-    "node_modules",
-    "output",
-    "test",
-    "bower.json",
-    "package.json"
-  ],
   "license": "MIT",
   "repository": {
     "type": "git",
