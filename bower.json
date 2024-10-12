@@ -1,8 +1,0 @@
-{
-  "name": "purescript-freet",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/purescript-contrib/purescript-freet.git"
-  }
-}
